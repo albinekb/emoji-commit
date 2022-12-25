@@ -7,10 +7,12 @@ pub struct InputString {
 }
 
 impl InputString {
-    pub fn new() -> Self {
+    pub fn new(initial_value: Option<String>) -> Self {
+        let value = initial_value.unwrap_or(String::new());
+        let position = value.len();
         Self {
-            value: String::new(),
-            position: 0,
+            value,
+            position,
             is_control_input: false,
         }
     }
