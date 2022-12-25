@@ -237,6 +237,7 @@ enum OutPath {
     EditMessage(PathBuf),
     RebaseTodo(PathBuf),
     AddPHunkEdit(PathBuf),
+    MergeMessage(PathBuf),
 }
 
 impl FromStr for OutPath {
@@ -249,6 +250,8 @@ impl FromStr for OutPath {
             Ok(OutPath::RebaseTodo(path))
         } else if path.ends_with(".git/addp-hunk-edit.diff") {
             Ok(OutPath::AddPHunkEdit(path))
+        } else if path.ends_with(".git/MERGE_MSG") {
+            Ok(OutPath::MergeMessage(path))
         } else {
             Err(format!("Must end with one of the following: \r\n\t{}\r\n\t{}\r\n\t{}\r\nGot the following path: {:?}", ".git/COMMIT_EDITMSG", ".git/rebase-merge/git-rebase-todo", ".git/addp-hunk-edit.diff", path))
         }
@@ -281,7 +284,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             Ok(())
         },
         Opt {
-            out_path: Some(OutPath::RebaseTodo(out_path) | OutPath::AddPHunkEdit(out_path)),
+            out_path: Some(OutPath::RebaseTodo(out_path) | OutPath::AddPHunkEdit(out_path) | OutPath::MergeMessage(out_path)),
             refspecs: None,
         } => {
             launch_default_editor(out_path);
