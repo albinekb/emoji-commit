@@ -1,0 +1,46 @@
+
+name: 'Build binaries'
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        required: true
+        type: string
+        description: Input a tag to build
+
+
+jobs:
+  build-binary:
+    strategy:
+      fail-fast: true
+      matrix:
+        platform: [macos-latest, ubuntu-latest]
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly
+      - name: Install aarch64 dependencies
+        if: matrix.platform == 'macos-latest'
+        run: rustup target add aarch64-apple-darwin
+      - name: Build binary
+        run: cargo build --release
+      - uses: actions/upload-artifact@v3
+        with:
+          name: emoji-commit-${{ runner.os }}-${{ runner.arch	}}
+          path: target/release/emoji-commit
+      - name: Build binary aarch64-apple-darwin
+        if: matrix.platform == 'macos-latest'
+        run: cargo build --release --target aarch64-apple-darwin
+      - uses: actions/upload-artifact@v3
+        if: matrix.platform == 'macos-latest'
+        with:
+          name: emoji-commit-${{ runner.os }}-aarch64
+          path: target/release/emoji-commit
