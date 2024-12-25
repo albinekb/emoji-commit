@@ -13,13 +13,16 @@ readme = "readme.md"
 license = "MIT"
 
 [dependencies]
-termion = "1.0"
+termion = "4"
 log-update = "~0.1.0"
 default-editor = "~0.1.0"
 emoji-commit-type = "~0.1.1"
 git2 = "~0.15.0"
 structopt = "~0.3"
 ansi_term = "~0.12"
+
+[dev-dependencies]
+tempfile = "~3.14.0"
 
 [profile.release]
 codegen-units = 1

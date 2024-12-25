@@ -2,7 +2,7 @@ use std::env;
 use std::error::Error;
 use std::fmt;
 use std::fs::File;
-use std::io::{BufRead, BufReader, Seek, Write, stderr, stdin};
+use std::io::{Seek, Write, stderr, stdin};
 use std::process::{Command, exit};
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -12,12 +12,14 @@ use termion::input::TermRead;
 use termion::raw::IntoRawMode;
 
 use emoji_commit_type::CommitType;
+use message::{git_parse_existing_message, git_message_is_empty};
 use log_update::LogUpdate;
 use structopt::StructOpt;
 use ansi_term::Colour::{RGB, Green, Red, White};
 
 mod commit_rules;
 mod git;
+mod message;
 
 impl fmt::Display for commit_rules::CommitRuleValidationResult {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -141,41 +143,6 @@ fn launch_git_with_self_as_editor() {
     let self_path = std::env::current_exe().unwrap();
 
     run_cmd(Command::new("git").arg("commit").env("GIT_EDITOR", self_path))
-}
-
-fn git_parse_existing_message(file: &mut File) -> Option<(CommitType, String)> {
-    let first_line = file.read_line().unwrap().unwrap();
-
-    if first_line.is_empty() {
-        return None;
-    }
-
-
-    let first_str = first_line.chars().next().unwrap().to_string();
-    
-    let commit_type = CommitType::iter_variants().find(|commit_type| {
-        first_str == commit_type.emoji()
-    });
-
-    if commit_type == None { return None; }
-
-    // Check that the rest of the commit message is empty (i.e. no body)
-    if !git_message_is_empty(file) { return None; }
-
-    let emoji = commit_type.unwrap().emoji().to_string();
-    let message = first_line.replace(&emoji, "").trim().to_string();
-    Some((commit_type.unwrap(), message))
-}
-
-fn git_message_is_empty(file: &mut File) -> bool {
-    for line in BufReader::new(file).lines() {
-        let line = line.expect("Failed to read line from git message file");
-
-        if !line.starts_with('#') && !line.is_empty()  {
-            return false;
-        }
-    }
-    true
 }
 
 fn collect_information_and_write_to_file(out_path: PathBuf) {
